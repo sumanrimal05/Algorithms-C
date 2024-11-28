@@ -1,7 +1,3 @@
-//pseudo code for linked list
-// There is a head pointer. next pointer and the data the linked list is holding
-// The last node points to NULL
-// we will make the singly linked list for the integers
 #include<stdio.h>
 #include<stdlib.h>
 
@@ -10,7 +6,6 @@ struct Node{
   struct Node *next;
 
 };
-
 
 // // Insert in linked list
 void insertAtHead(struct Node **head, int data);
@@ -31,9 +26,6 @@ void traverseList(struct Node *head);   // Traverse the list
 
 // void sortList();    // Sort the list
 // void mergeSorted(); //Merge two sorted list
-
-
-
 
 int main(){
   struct Node *head = NULL;
