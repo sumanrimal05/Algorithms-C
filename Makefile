@@ -7,11 +7,14 @@ CFLAGS = -Wall -Wextra -g
 # Source files
 SRCS = singlyLinkedList.c
 
-# Object files (compiling each source file to an object file)
+# Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
 TARGET = singlyLinkedList
+
+# Dependencies (for automatic dependency management)
+DEP := $(SRCS:.c=.d)
 
 # Default target
 all: $(TARGET)
@@ -24,6 +27,24 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Rule to generate dependency files
+%.d: %.c
+	$(CC) -MM $(CFLAGS) $< > $@
+
+# Include dependency files if they exist
+-include $(DEP)
+
 # Clean rule to remove the executable and object files
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS) $(DEP)
+
+# Run the program
+run: $(TARGET)
+	./$(TARGET)
+
+# Debug build
+debug: CFLAGS += -DDEBUG
+debug: clean $(TARGET)
+
+# Phony targets
+.PHONY: all clean run debug

@@ -19,7 +19,7 @@ void deleteFromList(struct Node **head, int item);
 // void deleteAtIndex();
 
 void traverseList(struct Node *head);   // Traverse the list
-// void searchList();  // Search through the whole list
+void searchInList(struct Node *head, int item);  // Search through the whole list
 // void reverseList();   // Reverse the list
 // void lengthList();    // Return the length of the list
 // void removeDuplicates();  // Remove duplicates from the list
@@ -36,17 +36,7 @@ int main(){
   insertAtHead(&head, 50);
   insertAtHead(&head, 60);
 
-  traverseList(head);
-  deleteAtHead(&head);
-  traverseList(head);
-
-  deleteFromList(&head,30);
-  traverseList(head);
-
-  deleteFromList(&head,50);
-  traverseList(head);
-
-  deleteFromList(&head,100);
+  searchInList(head, 80);
 
   return 0;
 }
@@ -116,4 +106,23 @@ void deleteFromList(struct Node **head, int item){
   //Free the memory of the deleted node
   free(currentNode);
   
+}
+
+void searchInList(struct Node *head, int item){
+  // Traverse through the link list until you find the item or it is the end of the list
+  struct Node *currentNode;
+
+// The oder of evaluation matters.When the currentNode pointer reaches the end of linked list where
+// the currentNode next points to null, with this code seg fault occurs. Because, when the currentNode is NULL the first condition
+// that is being evaluated is not whether the curentNode is NULL or not but we are trying to access currentNode->data. 
+//So, segfault occurs
+  // for(currentNode = head; currentNode->data != item && currentNode != NULL; currentNode = currentNode->next);
+
+  for(currentNode = head; currentNode != NULL && currentNode->data != item; currentNode = currentNode->next);
+  if(currentNode == NULL){
+    printf("Item not found\n");
+    return;
+  }
+
+  printf("Item found\n");
 }
