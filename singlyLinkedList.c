@@ -7,12 +7,12 @@ struct Node{
 
 };
 
-// // Insert in linked list
+// Insert in linked list
 void insertAtHead(struct Node **head, int data);
 // void insertAtTail();
 // void insertAtIndex();
 
-// // Delete Operation
+// Delete Operation
 void deleteAtHead(struct Node **head);
 void deleteFromList(struct Node **head, int item);
 // void deleteAtTail();
@@ -21,7 +21,7 @@ void deleteFromList(struct Node **head, int item);
 void traverseList(struct Node *head);   // Traverse the list
 void searchInList(struct Node *head, int item);  // Search through the whole list
 // void reverseList();   // Reverse the list
-// void lengthList();    // Return the length of the list
+int getLength(struct Node *head);   // Return the number of nodes in linked list
 // void removeDuplicates();  // Remove duplicates from the list
 
 // void sortList();    // Sort the list
@@ -37,6 +37,10 @@ int main(){
   insertAtHead(&head, 60);
 
   searchInList(head, 80);
+
+  int count = getLength(head);
+  printf(" Count is %d\n", count);
+
 
   return 0;
 }
@@ -125,4 +129,10 @@ void searchInList(struct Node *head, int item){
   }
 
   printf("Item found\n");
+}
+
+int getLength(struct Node *head){
+  int count; // Number of nodes
+  for(count = 0; head != NULL; head = head->next, count++);
+  return count;
 }
