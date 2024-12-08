@@ -20,7 +20,7 @@ void deleteFromList(struct Node **head, int item);
 
 void traverseList(struct Node *head);   // Traverse the list
 void searchInList(struct Node *head, int item);  // Search through the whole list
-// void reverseList();   // Reverse the list
+void reverseList(struct Node **head);  // Reverse the list
 int getLength(struct Node *head);   // Return the number of nodes in linked list
 // void removeDuplicates();  // Remove duplicates from the list
 
@@ -36,10 +36,12 @@ int main(){
   insertAtHead(&head, 50);
   insertAtHead(&head, 60);
 
-  searchInList(head, 80);
+  printf("Before reversing List\n");
+  traverseList(head);
 
-  int count = getLength(head);
-  printf(" Count is %d\n", count);
+  reverseList(&head);
+  printf("After reversing List\n");
+  traverseList(head);
 
 
   return 0;
@@ -64,7 +66,7 @@ void traverseList(struct Node *head){
   // continue the loop until you find the null
 
   // head->[30, address]->[20, address]->[10, address]
-  printf("head -> ");
+  printf("head[%p] -> ", head);
   while(head != NULL){
     printf("[%d, %p] -> ", head->data, head->next);
     head = head->next;
@@ -135,4 +137,23 @@ int getLength(struct Node *head){
   int count; // Number of nodes
   for(count = 0; head != NULL; head = head->next, count++);
   return count;
+}
+
+void reverseList(struct Node **head){
+  // Change the current pointer to point to previous Node
+  // To do this first save the head pointer to currentNode
+  // And make the head pointer point to another node
+  //then change the 'currentNode' next to point to previousNode.
+  struct Node *previousNode;
+  struct Node *currentNode;
+
+  for(previousNode = NULL ; (*head) != NULL; previousNode = currentNode){
+    currentNode = (*head);
+    *head = (*head)->next;
+    currentNode->next = previousNode;
+  }
+  if((*head) == NULL){
+    (*head) = previousNode;
+  }
+  
 }
