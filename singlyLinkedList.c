@@ -9,7 +9,7 @@ struct Node{
 
 // Insert in linked list
 void insertAtHead(struct Node **head, int data);
-// void insertAtTail();
+void insertAtTail(struct Node **head, int data);
 // void insertAtIndex();
 
 // Delete Operation
@@ -17,8 +17,10 @@ void deleteAtHead(struct Node **head);
 void deleteFromList(struct Node **head, int item);
 // void deleteAtTail();
 // void deleteAtIndex();
+void deleteList(struct Node **head);
 
-void traverseList(struct Node *head);   // Traverse the list
+struct Node* traverseList(struct Node *head);   // Traverse the list
+void printList(struct Node *head);   // Print the entire linked list
 void searchInList(struct Node *head, int item);  // Search through the whole list
 void reverseList(struct Node **head);  // Reverse the list
 int getLength(struct Node *head);   // Return the number of nodes in linked list
@@ -37,43 +39,74 @@ int main(){
   insertAtHead(&head, 60);
 
   printf("Before reversing List\n");
-  traverseList(head);
+  printList(head);
 
   reverseList(&head);
   printf("After reversing List\n");
-  traverseList(head);
+  printList(head);
+
+  // Free Linked list
+  deleteList(&head);
+  printList(head);
 
 
   return 0;
 }
 
-void insertAtHead(struct Node **head, int data){
+struct Node* createNode(int data){
   struct Node *newNode = malloc(sizeof(struct Node));
 
-  if(newNode ==NULL){
+  if (newNode == NULL){
     printf("Memory allocation failed.\n");
-    return;
+     // Using exit(1) instead of return because exit(1)terminates the whole program
+    // using return in main also terminates the whole program
+    // but returning from the function only terminates the function.
+    exit(1);
   }
 
   newNode->data = data;
+  newNode->next = NULL;
+
+  return newNode;
+}
+
+void insertAtHead(struct Node **head, int data){
+  struct Node *newNode = createNode(data);
   newNode->next = *head;
   *head = newNode;
 
 }
 
-void traverseList(struct Node *head){
+
+// Traverse the linked list and return the pointer to the end of linked list
+struct Node* traverseList(struct Node *head){
   // we need head to traverse
   // continue the loop until you find the null
 
   // head->[30, address]->[20, address]->[10, address]
+  while(head->next != NULL){
+    head = head->next;
+  }
+
+  return head;
+}
+
+void printList(struct Node *head){
+  if(head == NULL){
+    printf("The list is empty\n");
+    return;
+  }
+
   printf("head[%p] -> ", head);
-  while(head != NULL){
+  while(head -> next != NULL){
     printf("[%d, %p] -> ", head->data, head->next);
     head = head->next;
   }
+  if(head->next == NULL){
+    printf("[%d, %p]", head->data, head->next);
+  }
   printf("\n");
   printf("List traversal complete\n");
-
 }
 
 void deleteAtHead(struct Node **head){
@@ -90,6 +123,7 @@ void deleteAtHead(struct Node **head){
 }
 
 void deleteFromList(struct Node **head, int item){
+
   struct Node *currentNode,*previousNode;
 
   //Search until you find the item or you are in the end of the list
@@ -114,6 +148,16 @@ void deleteFromList(struct Node **head, int item){
   
 }
 
+// Free linked list
+void deleteList(struct Node **head){
+  struct Node *previousNode;
+  
+  while((*head) != NULL){
+    previousNode = *head;
+    *head = (*head) -> next;
+    free(previousNode);
+  }
+}
 void searchInList(struct Node *head, int item){
   // Traverse through the link list until you find the item or it is the end of the list
   struct Node *currentNode;
@@ -157,3 +201,4 @@ void reverseList(struct Node **head){
   }
   
 }
+
