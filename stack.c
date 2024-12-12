@@ -14,6 +14,7 @@ bool isEmpty(struct Node *head);
 int size(struct Node *head);
 
 void printStack(struct Node *head);
+void freeStack(struct Node **head);
 
 int main(){
   //Initialize head pointer to NULL
@@ -24,6 +25,8 @@ int main(){
   printStack(head);
   pop(&head);
   printStack(head);
+
+  freeStack(&head);
 
   return 0;
 }
@@ -42,6 +45,10 @@ void push(struct Node **head, int data){
 }
 
 void pop(struct Node **head){
+  if(*head == NULL){
+    printf("Cannot pop from empty stack\n");
+    return;
+  }
   struct Node *currentNode;
   currentNode = *head;
   *head = (*head)->next;
@@ -51,6 +58,10 @@ void pop(struct Node **head){
 }
 
 int top(struct Node *head){
+  if(head == NULL){
+    printf("Stack is empty");
+    exit(1);
+  }
   return head->data;
 }
 
@@ -69,7 +80,7 @@ int size(struct Node *head){
 
 void printStack(struct Node *head){
   if(head == NULL){
-    printf("The list is empty\n");
+    printf("The stack is empty\n");
      return;
   }
 
@@ -78,5 +89,11 @@ void printStack(struct Node *head){
     printf("[%d, %p]->",head->data, head->next);
     head = head->next;
   }
-  printf("\n");
+  printf("NULL\n");
+}
+
+void freeStack(struct Node **head){
+  while(*head != NULL){
+    pop(head);
+  }
 }
