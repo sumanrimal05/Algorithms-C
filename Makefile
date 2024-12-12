@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = singlyLinkedList.c
+SRCS = stack.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = singlyLinkedList
+TARGET = stack
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)
