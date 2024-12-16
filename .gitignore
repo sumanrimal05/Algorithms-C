@@ -51,6 +51,10 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+#IDE Configurations
+.vscode/
+
 # Ignore build file
 singlyLinkedList
 stack
+simpleDynamicQueue

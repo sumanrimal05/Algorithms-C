@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = stack.c
+SRCS = simpleDynamicQueue.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = stack
+TARGET = simpleDynamicQueue
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)
