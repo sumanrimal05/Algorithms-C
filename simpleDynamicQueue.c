@@ -13,7 +13,7 @@ struct Queue{
   int size;
 };
 
-void enqueue(struct Queue *queue, struct Node **previousNode, int data);
+void enqueue(struct Queue *queue, int data);
 void dequeue(struct Queue *queue);
 struct Node* front(struct Queue *queue);
 struct Node* rear(struct Queue *queue);
@@ -27,12 +27,19 @@ void freeQueue(struct Queue *queue);
 
 int main(){
   struct Queue *queue = malloc(sizeof(struct Queue));
-  struct Node *previousNode = NULL;
-  enqueue(queue, &previousNode, 10);
-  enqueue(queue, &previousNode, 20);
-  enqueue(queue, &previousNode, 30);
-  enqueue(queue, &previousNode, 40);
-  enqueue(queue, &previousNode, 50);
+  if(!queue){
+    printf("Memory allocation failed for Queue.\n");
+    return 1;
+  }
+  // Initialization to avoid garbage values
+  queue->head = queue->tail = NULL;
+  queue->size = 0;
+
+  enqueue(queue, 10);
+  enqueue(queue, 20);
+  enqueue(queue, 30);
+  enqueue(queue, 40);
+  enqueue(queue, 50);
   printQueue(queue);
   dequeue(queue);
   printQueue(queue);
@@ -56,25 +63,51 @@ struct Node* createNode(int data){
 
   newNode->data = data;
   newNode->next = NULL;
-
   return newNode;
 }
 
 
-void enqueue(struct Queue *queue, struct Node **previousNode, int data){
+void enqueue(struct Queue *queue, int data){
   struct Node *newNode = createNode(data);
 
   if(queue->head == NULL){
     queue->head = newNode;
-    *previousNode = newNode;
-    queue->size++;
-    return;
+    queue->tail = newNode;
+  } else{
+    queue->tail->next = newNode;
+    queue->tail = newNode;
   }
   
-  (*previousNode)->next = newNode;
-  *previousNode = newNode;
-  queue->tail = newNode;
   queue->size++;
+}
+
+void dequeue(struct Queue *queue){
+  if(isEmpty(queue)){
+    printf("Queue is empty. Cannot dequeue.\n");
+    return;
+  }
+  struct Node *temp;
+  temp = queue->head;
+  queue->head = queue->head->next;
+
+// If the element we removed is the last element.
+// We need to make sure to point the tail to NULL.
+  if(queue->head == NULL){
+    queue->tail = NULL;
+  }
+
+  free(temp);
+  queue->size--;
+
+}
+
+
+void freeQueue(struct Queue *queue){
+  while(queue->head != NULL){
+    dequeue(queue);
+  }
+  free(queue);
+  printf("Queue is freed.\n");
 }
 
 
@@ -114,11 +147,7 @@ struct Node* rear(struct Queue *queue){
 
 
 bool isEmpty(struct Queue *queue){
-  if(queue->head == NULL){
-    printf("Queue is empty.\n");
-    return true;
-  }
-  return false;
+  return queue->head == NULL;
 }
 
 
@@ -132,23 +161,3 @@ int size(struct Queue *queue){
 }
 
 
-void dequeue(struct Queue *queue){
-  if(isEmpty(queue)){
-    printf("Queue is empty.\n");
-    exit(1);
-  }
-  struct Node *previousNode;
-  previousNode = queue->head;
-  queue->head = queue->head->next;
-  free(previousNode);
-  queue->size--;
-
-}
-
-
-void freeQueue(struct Queue *queue){
-  while(queue->head != NULL){
-    dequeue(queue);
-  }
-  printf("Queue is empty\n");
-}
