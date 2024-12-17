@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = Sorting/bubbleSort.c
+SRCS = Sorting/selectionSort.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = Sorting/bubbleSort
+TARGET = Sorting/selectionSort
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)
