@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = Queue/simpleDynamicQueue.c
+SRCS = Sorting/bubbleSort.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = Queue/simpleDynamicQueue
+TARGET = Sorting/bubbleSort
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)
