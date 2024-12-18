@@ -60,3 +60,5 @@ stack
 simpleDynamicQueue
 bubbleSort
 selectionSort
+insertionSort
+binarySearch

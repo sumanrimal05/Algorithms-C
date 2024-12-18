@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = Sorting/selectionSort.c
+SRCS = Searching/binarySearch.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = Sorting/selectionSort
+TARGET = Searching/binarySearch
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)
