@@ -62,3 +62,4 @@ bubbleSort
 selectionSort
 insertionSort
 binarySearch
+slidingWindowTechnique

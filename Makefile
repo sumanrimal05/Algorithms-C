@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = Searching/binarySearch.c
+SRCS = Others/slidingWindowTechnique.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = Searching/binarySearch
+TARGET = Others/slidingWindowTechnique
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)
