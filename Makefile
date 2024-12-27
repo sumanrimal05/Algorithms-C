@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = Others/slidingWindowTechnique.c
+SRCS = Hashing/SeperateChaining/seperateChaining.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = Others/slidingWindowTechnique
+TARGET = Hashing/SeperateChaining/seperateChaining
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)

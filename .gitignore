@@ -63,3 +63,8 @@ selectionSort
 insertionSort
 binarySearch
 slidingWindowTechnique
+seperateChaining
+
+#Ignore folders
+Hashing/OpenAddressing/
+Hashing/PerfectHashing/
