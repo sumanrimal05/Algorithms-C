@@ -25,9 +25,7 @@ struct HashTable
   float loadFactor; // Defines how filled the array is.
 };
 
-// TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
-// If you didnot make a new hashtable and just resize the previous hashTable
-//  The hash function will give inconsistent hashIndex as the table size
+
 
 // Function Prototype
 struct HashTable *hashMap_create_hashTable_withoutCapacity();
@@ -136,6 +134,9 @@ int hashMap_generate_hashIndex(int key)
 
 void hashMap_insert(struct HashTable *hashTable, int key)
 {
+  // TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
+// If you don't make a new hashtable and just resize the previous hashTable
+//  The hash function will give inconsistent hashIndex as the table size is changed
   // Generate hashIndex for the key
   int hashIndex = hashMap_generate_hashIndex(key);
   // Check if the hashTable loadFactor is above the threshold expand
