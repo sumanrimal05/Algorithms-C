@@ -64,6 +64,7 @@ int main()
   // printf("Hash Index: %d\n", result);
   hashMap_insert(hashTable, 20);
   hashMap_insert(hashTable, 1678555666);
+  // hashMap_printMap(hashTable);
   hashMap_insert(hashTable, 3);
   hashMap_insert(hashTable, 13);
   hashMap_printMap(hashTable);
@@ -150,22 +151,26 @@ void hashMap_insert(struct HashTable *hashTable, int key)
   // Check if the hashIndex in HashTable is empty
   // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
 
-  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
+  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex - 1];
+  // printf("H: %p", hashTable->hashTableBaseAddress[hashIndex - 1]);
   struct Node *newNode = malloc(sizeof(struct Node));
   if ((hashTableIndexHeadPointer) == NULL)
   {
+    printf("Key: %d, HashIndex: %d\n", key, hashIndex);
+    printf("Collision Not Detected.\n");
     newNode->key = key;
     newNode->next = NULL;
-    hashTable->hashTableBaseAddress[hashIndex] = newNode;
+    hashTable->hashTableBaseAddress[hashIndex - 1] = newNode;
   }
   // If the hashIndex not empty. traverse to the end of linked list and put the node there.
-  if (!hashTableIndexHeadPointer)
+  else
   {
-
+    printf("Key: %d, HashIndex: %d\n", key, hashIndex);
+    printf("Collison Detected with key: %d\n", hashTableIndexHeadPointer->key);
     newNode->key = key;
     newNode->next = hashTableIndexHeadPointer;
 
-    hashTable->hashTableBaseAddress[hashIndex] = newNode;
+    hashTable->hashTableBaseAddress[hashIndex - 1] = newNode;
   }
 }
 
@@ -186,7 +191,6 @@ void hashMap_printMap(struct HashTable *hashTable)
     if (hashTableIndexHeadPointer == NULL)
     {
       printf("NULL\n");
-      continue;
     }
   }
   // Print the baseAddress[hashIndex] and chain in one line
