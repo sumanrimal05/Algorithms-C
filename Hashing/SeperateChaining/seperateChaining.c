@@ -25,8 +25,6 @@ struct HashTable
   float loadFactor; // Defines how filled the array is.
 };
 
-
-
 // Function Prototype
 struct HashTable *hashMap_create_hashTable_withoutCapacity();
 struct HashTable *hashMap_create_hashTable_withCapacity(int initialCapacity);
@@ -69,6 +67,41 @@ int main()
   hashMap_printMap(hashTable);
   hashMap_free(hashTable);
   return 0;
+}
+void hashMap_insert(struct HashTable *hashTable, int key)
+{
+  // TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
+  // If you don't make a new hashtable and just resize the previous hashTable
+  //  The hash function will give inconsistent hashIndex as the table size is changed
+  // Generate hashIndex for the key
+  int hashIndex = hashMap_generate_hashIndex(key);
+  // Check if the hashTable loadFactor is above the threshold expand
+  // IF above double the size of hashTable and recalculate the loadFactor
+  if (hashTable->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
+  {
+    hashTable->capacity *= 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
+  }
+
+  // Check if the hashIndex in HashTable is empty
+  // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
+
+  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
+  struct Node *newNode = malloc(sizeof(struct Node));
+  if ((hashTableIndexHeadPointer) == NULL)
+  {
+    newNode->key = key;
+    newNode->next = NULL;
+    hashTable->hashTableBaseAddress[hashIndex] = newNode;
+  }
+  // If the hashIndex not empty. traverse to the end of linked list and put the node there.
+  if (!hashTableIndexHeadPointer)
+  {
+
+    newNode->key = key;
+    newNode->next = hashTableIndexHeadPointer;
+
+    hashTable->hashTableBaseAddress[hashIndex] = newNode;
+  }
 }
 
 struct HashTable *hashMap_create_hashTable_withoutCapacity()
@@ -128,45 +161,9 @@ int hashMap_generate_hashIndex(int key)
 
   // The operation key & (table_size - 1) is a technique used in hash tables where the table size is a power of 2.
   // It serves the same purpose as the modulo operation (key % table_size), but it’s faster because it uses a bitwise AND operation instead of division.
+  // Also key % table_size brings the index to the table size even if the key size is larger than the table size.
   index = hashCode & (tableSize - 1);
   return index;
-}
-
-void hashMap_insert(struct HashTable *hashTable, int key)
-{
-  // TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
-// If you don't make a new hashtable and just resize the previous hashTable
-//  The hash function will give inconsistent hashIndex as the table size is changed
-  // Generate hashIndex for the key
-  int hashIndex = hashMap_generate_hashIndex(key);
-  // Check if the hashTable loadFactor is above the threshold expand
-  // IF above double the size of hashTable and recalculate the loadFactor
-  if (hashTable->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
-  {
-    hashTable->capacity *= 2;
-  }
-
-  // Check if the hashIndex in HashTable is empty
-  // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
-
-  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
-  struct Node *newNode = malloc(sizeof(struct Node));
-  printf("H: %p\n", hashTableIndexHeadPointer);
-  if (hashTableIndexHeadPointer == NULL)
-  {
-    newNode->key = key;
-    newNode->next = NULL;
-    hashTableIndexHeadPointer = newNode;
-  }
-  // If the hashIndex not empty. traverse to the end of linked list and put the node there.
-  if (!hashTableIndexHeadPointer)
-  {
-
-    newNode->key = key;
-    newNode->next = hashTableIndexHeadPointer;
-
-    hashTableIndexHeadPointer = newNode;
-  }
 }
 
 void hashMap_printMap(struct HashTable *hashTable)
