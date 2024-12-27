@@ -64,44 +64,11 @@ int main()
   // printf("Hash Index: %d\n", result);
   hashMap_insert(hashTable, 20);
   hashMap_insert(hashTable, 1678555666);
+  hashMap_insert(hashTable, 3);
+  hashMap_insert(hashTable, 13);
   hashMap_printMap(hashTable);
   hashMap_free(hashTable);
   return 0;
-}
-void hashMap_insert(struct HashTable *hashTable, int key)
-{
-  // TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
-  // If you don't make a new hashtable and just resize the previous hashTable
-  //  The hash function will give inconsistent hashIndex as the table size is changed
-  // Generate hashIndex for the key
-  int hashIndex = hashMap_generate_hashIndex(key);
-  // Check if the hashTable loadFactor is above the threshold expand
-  // IF above double the size of hashTable and recalculate the loadFactor
-  if (hashTable->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
-  {
-    hashTable->capacity *= 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
-  }
-
-  // Check if the hashIndex in HashTable is empty
-  // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
-
-  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
-  struct Node *newNode = malloc(sizeof(struct Node));
-  if ((hashTableIndexHeadPointer) == NULL)
-  {
-    newNode->key = key;
-    newNode->next = NULL;
-    hashTable->hashTableBaseAddress[hashIndex] = newNode;
-  }
-  // If the hashIndex not empty. traverse to the end of linked list and put the node there.
-  if (!hashTableIndexHeadPointer)
-  {
-
-    newNode->key = key;
-    newNode->next = hashTableIndexHeadPointer;
-
-    hashTable->hashTableBaseAddress[hashIndex] = newNode;
-  }
 }
 
 struct HashTable *hashMap_create_hashTable_withoutCapacity()
@@ -166,13 +133,61 @@ int hashMap_generate_hashIndex(int key)
   return index;
 }
 
+void hashMap_insert(struct HashTable *hashTable, int key)
+{
+  // TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
+  // If you don't make a new hashtable and just resize the previous hashTable
+  //  The hash function will give inconsistent hashIndex as the table size is changed
+  // Generate hashIndex for the key
+  int hashIndex = hashMap_generate_hashIndex(key);
+  // Check if the hashTable loadFactor is above the threshold expand
+  // IF above double the size of hashTable and recalculate the loadFactor
+  if (hashTable->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
+  {
+    hashTable->capacity *= 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
+  }
+
+  // Check if the hashIndex in HashTable is empty
+  // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
+
+  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
+  struct Node *newNode = malloc(sizeof(struct Node));
+  if ((hashTableIndexHeadPointer) == NULL)
+  {
+    newNode->key = key;
+    newNode->next = NULL;
+    hashTable->hashTableBaseAddress[hashIndex] = newNode;
+  }
+  // If the hashIndex not empty. traverse to the end of linked list and put the node there.
+  if (!hashTableIndexHeadPointer)
+  {
+
+    newNode->key = key;
+    newNode->next = hashTableIndexHeadPointer;
+
+    hashTable->hashTableBaseAddress[hashIndex] = newNode;
+  }
+}
+
 void hashMap_printMap(struct HashTable *hashTable)
 {
   // Access the base address of HashTable
   // Loop through the whole hashTable
-  for (int hashTableIndex = 0; hashTableIndex < (hashTable->capacity); hashTableIndex++)
+  for (int index = 0; index < (hashTable->capacity); index++)
   {
-    printf("%p\n", hashTable->hashTableBaseAddress[hashTableIndex]);
+    printf("%d: ", index);
+    struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[index];
+
+    while (hashTableIndexHeadPointer != NULL)
+    {
+      printf("[%d, %p]->", hashTableIndexHeadPointer->key, hashTableIndexHeadPointer->next);
+      hashTableIndexHeadPointer = hashTableIndexHeadPointer->next;
+    }
+    if (hashTableIndexHeadPointer == NULL)
+    {
+      printf("NULL\n");
+      continue;
+    }
   }
   // Print the baseAddress[hashIndex] and chain in one line
   // Print other hashIndex value in another line
