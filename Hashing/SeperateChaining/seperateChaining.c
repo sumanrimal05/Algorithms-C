@@ -4,6 +4,21 @@
 #define LOAD_FACTOR_THRESHOLD_EXPAND 0.75 // Defines the threshold for expanding the hash table
 #define LOAD_FACTOR_THRESHOLD_SHRINK 0.2  // Defines the threshold for shrinking the hash table
 
+// The primary goal of a hash function is to minimize collisions by distributing keys uniformly across the table.
+// Choosing a prime number as the table size is beneficial because:
+// - When using the modulo operation with a prime number, the hash keys exhibit a non-repeating pattern.
+// - This non-repeating pattern ensures keys are distributed more evenly across the table, reducing the likelihood of clustering.
+// For example, if the table size is not prime, certain patterns may emerge (e.g., results like 1, 3, 4, 3, 1, 4...),
+// leading to repeated collisions or longer probing sequences before finding an empty slot.
+
+// In the solution below we will be using the table size of power of 2.
+// Because power of 2 eg(dec:2 , bin:00000010  dec:4 , bin:00000100   dec:8 , bin:00001000   dec:16 , bin:00010000)
+// can be a consistent representation like one bit is high and rest of the bit are low in all 2 power cases.
+// Using power of 2 is important as be can use bit wise operator on calculating hash function.
+// Also if we have used prime numbers, while doubling the hashTable size we need to find the nearest prime number
+// to the double which is computationally a little heavy.
+#define INITIAL_CAPACITY 16 // Default hash table capacity or table size, power of 2
+
 // Node for storing the key that results in collison as a chain using linked list
 struct Node
 {
@@ -26,57 +41,51 @@ struct HashTable
 };
 
 // Function Prototype
-struct HashTable *hashMap_create_hashTable_withoutCapacity();
-struct HashTable *hashMap_create_hashTable_withCapacity(int initialCapacity);
-void hashMap_insert(struct HashTable *hashTable, int item);
-void hashMap_delete(struct HashTable *hashTable, int item);
-int hashMap_search(struct HashTable *hashTable, int item);
-void hashMap_printMap(struct HashTable *hashTable);
+struct HashTable *hashTable_create_withoutCapacity();
+struct HashTable *hashTable_create_withCapacity(int initialCapacity);
+void hashTable_insert(struct HashTable *hashTable, int item);
+void hashTable_delete(struct HashTable *hashTable, int item);
+int hashTable_search(struct HashTable *hashTable, int item);
+void hashTable_printMap(struct HashTable *hashTable);
+struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable);
 
 // Helper Function
-int hashMap_generate_hashIndex(int key);
-void hashMap_expand(struct HashTable *hashTable, int expandSize);
-void hashMap_shrink(struct HashTable *hashTable, int shrinkSize);
-void hashMap_free(struct HashTable *hashTable);
+void hashTable_calculate_loadFactor(struct HashTable *hashTable);
+int hashTable_generate_hashIndex(struct HashTable *hashTable, int key);
+void hashTable_expand(struct HashTable *hashTable);
+void hashTable_shrink(struct HashTable *hashTable);
+void hashTable_insert_into_HeadNode(struct Node *hashTableIndexHeadPointer); // Insert key at the Head of chain in the linked list
+void hashTable_free(struct HashTable *hashTable);
+unsigned int convert_input_to_powerOfTwo(int number);
 
-// I beautified this comment with chatgpt. Tehee!!
-// The primary goal of a hash function is to minimize collisions by distributing keys uniformly across the table.
-// Choosing a prime number as the table size is beneficial because:
-// - When using the modulo operation with a prime number, the hash keys exhibit a non-repeating pattern.
-// - This non-repeating pattern ensures keys are distributed more evenly across the table, reducing the likelihood of clustering.
-// For example, if the table size is not prime, certain patterns may emerge (e.g., results like 1, 3, 4, 3, 1, 4...),
-// leading to repeated collisions or longer probing sequences before finding an empty slot.
-
-// In the solution below we will be using the table size of power of 2.
-// Because power of 2 eg(dec:2 , bin:00000010  dec:4 , bin:00000100   dec:8 , bin:00001000   dec:16 , bin:00010000)
-// can be a consistent representation like one bit is high and rest of the bit are low in all 2 power cases.
-// Using power of 2 is important as be can use bit wise operator on calculating hash function.
-// Also if we have used prime numbers, while doubling the hashTable size we need to find the nearest prime number
-// to the double which is computationally a little heavy.
-int tableSize = 16; // Power of 2
 int main()
 {
-  struct HashTable *hashTable = hashMap_create_hashTable_withoutCapacity();
-  // int result = hashMap_generate_hashIndex(3);
+  struct HashTable *hashTable = hashTable_create_withoutCapacity();
+  struct HashTable *newHashTable = hashTable_create_withCapacity(32);
+  // int result = hashTable_generate_hashIndex(3);
   // printf("Hash Index: %d\n", result);
 
-  // result = hashMap_generate_hashIndex(13);
+  // result = hashTable_generate_hashIndex(13);
   // printf("Hash Index: %d\n", result);
-  hashMap_insert(hashTable, 20);
-  hashMap_insert(hashTable, 1678555666);
-  // hashMap_printMap(hashTable);
-  hashMap_insert(hashTable, 3);
-  hashMap_insert(hashTable, 13);
-  hashMap_printMap(hashTable);
-  hashMap_free(hashTable);
+
+  // printf("%d\n", (newest->hashTableBaseAddress[12])->key);
+  hashTable_insert(hashTable, 20);
+  hashTable_insert(hashTable, 21);
+  hashTable_insert(hashTable, 1678555666);
+  // hashTable_printMap(hashTable);
+  hashTable_insert(hashTable, 3);
+  hashTable_insert(hashTable, 13);
+  hashTable_insert(hashTable, 14);
+  hashTable_printMap(hashTable);
+  hashTable_free(hashTable);
   return 0;
 }
 
-struct HashTable *hashMap_create_hashTable_withoutCapacity()
+struct HashTable *hashTable_create_withoutCapacity()
 {
   struct HashTable *hashTable = malloc(sizeof(struct HashTable));
   // Initializing the strucuture variables
-  hashTable->capacity = tableSize;
+  hashTable->capacity = INITIAL_CAPACITY;
   hashTable->size = 0;
   hashTable->loadFactor = 0;
   // Create a hash table with initial table size
@@ -90,14 +99,15 @@ struct HashTable *hashMap_create_hashTable_withoutCapacity()
   return hashTable;
 }
 
-struct HashTable *hashMap_create_hashTable_withCapacity(int initialCapacity)
+struct HashTable *hashTable_create_withCapacity(int initialCapacity)
 {
   struct HashTable *hashTable = malloc(sizeof(struct HashTable));
   // Initializing the strucuture variables
-  tableSize = initialCapacity;
-  hashTable->capacity = tableSize;
   hashTable->size = 0;
   hashTable->loadFactor = 0;
+  // Converting the hashTable into power of 2.
+  int tableSize = convert_input_to_powerOfTwo(initialCapacity);
+  hashTable->capacity = tableSize;
   // Create a hash table with initial table size
   // We are using calloc because in case of pointers calloc initializes the memory address with NULL value
   hashTable->hashTableBaseAddress = calloc(hashTable->capacity, sizeof(struct Node *));
@@ -110,7 +120,7 @@ struct HashTable *hashMap_create_hashTable_withCapacity(int initialCapacity)
   return hashTable;
 }
 
-int hashMap_generate_hashIndex(int key)
+int hashTable_generate_hashIndex(struct HashTable *hashTable, int key)
 {
   // We will be using bit wise operator on hash function because
   // 1.Bit wise operator are fast comparison to modulo operator.
@@ -130,28 +140,46 @@ int hashMap_generate_hashIndex(int key)
   // The operation key & (table_size - 1) is a technique used in hash tables where the table size is a power of 2.
   // It serves the same purpose as the modulo operation (key % table_size), but it’s faster because it uses a bitwise AND operation instead of division.
   // Also key % table_size brings the index to the table size even if the key size is larger than the table size.
-  index = hashCode & (tableSize - 1);
+  index = hashCode & ((hashTable->capacity) - 1);
   return index;
 }
 
-void hashMap_insert(struct HashTable *hashTable, int key)
+void hashTable_insert(struct HashTable *hashTable, int key)
 {
   // TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
   // If you don't make a new hashtable and just resize the previous hashTable
   //  The hash function will give inconsistent hashIndex as the table size is changed
   // Generate hashIndex for the key
-  int hashIndex = hashMap_generate_hashIndex(key);
-  // Check if the hashTable loadFactor is above the threshold expand
-  // IF above double the size of hashTable and recalculate the loadFactor
+  int hashIndex = hashTable_generate_hashIndex(hashTable, key);
+
+  // Check if the hashTable loadFactor is above or below the threshold
+  hashTable_calculate_loadFactor(hashTable);
+  struct HashTable *newHashTable = hashTable;
+  // IF above double the size of hashTable and recalculate the table capacity
   if (hashTable->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
   {
+    printf("I am in 1.\n");
     hashTable->capacity *= 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
+                              // Create a new hashTable with double the size.
+    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(hashTable->capacity);
+    newHashTable = hashTable_copy(hashTable, newHashTableWithSize);
+    // Once the traversal is complete and you copied everything free the old hashTable
+    free(hashTable);
   }
 
+  if ((hashTable->loadFactor <= LOAD_FACTOR_THRESHOLD_SHRINK) && (hashTable->loadFactor >= INITIAL_CAPACITY))
+  {
+    printf("I am in 2.\n");
+    hashTable->capacity /= 2; // Reducing the size of hashTable by half
+    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(hashTable->capacity);
+    newHashTable = hashTable_copy(hashTable, newHashTableWithSize);
+    // Once the traversal is complete and you copied everything free the old hashTable
+    free(hashTable);
+  }
   // Check if the hashIndex in HashTable is empty
   // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
 
-  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex - 1];
+  struct Node *hashTableIndexHeadPointer = newHashTable->hashTableBaseAddress[hashIndex];
   // printf("H: %p", hashTable->hashTableBaseAddress[hashIndex - 1]);
   struct Node *newNode = malloc(sizeof(struct Node));
   if ((hashTableIndexHeadPointer) == NULL)
@@ -160,7 +188,7 @@ void hashMap_insert(struct HashTable *hashTable, int key)
     printf("Collision Not Detected.\n");
     newNode->key = key;
     newNode->next = NULL;
-    hashTable->hashTableBaseAddress[hashIndex - 1] = newNode;
+    newHashTable->hashTableBaseAddress[hashIndex] = newNode;
   }
   // If the hashIndex not empty. traverse to the end of linked list and put the node there.
   else
@@ -170,11 +198,71 @@ void hashMap_insert(struct HashTable *hashTable, int key)
     newNode->key = key;
     newNode->next = hashTableIndexHeadPointer;
 
-    hashTable->hashTableBaseAddress[hashIndex - 1] = newNode;
+    newHashTable->hashTableBaseAddress[hashIndex] = newNode;
   }
+  hashTable->size++;
 }
 
-void hashMap_printMap(struct HashTable *hashTable)
+struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable)
+{
+  // Check if newHashTable size is small then oldHashTable Size
+  // If newHashTable size is small then cannot copy as the new hash table cannot fit all the elements
+  if (newHashTable->capacity < oldHashTable->capacity)
+  {
+    printf("Copy Error: Can't copy a larger hash table into small hashtable.\n");
+    exit(1);
+  }
+
+  // Traverse the old hashTable nodes and while traversing calculate new hashIndex for the key and put it in the new hashTable
+  for (int index = 0; index < (oldHashTable->capacity); index++)
+  {
+
+    struct Node *oldHashTableIndexHeadPointer = oldHashTable->hashTableBaseAddress[index];
+
+    // If the old hash table index pointer is NULL.
+    // Just skip it as there is no key and trying to access the key will give error
+    if (oldHashTableIndexHeadPointer == NULL)
+    {
+      continue;
+    }
+
+    while (oldHashTableIndexHeadPointer != NULL)
+    {
+      // 1. Find the key at head
+      // 2. Generate new hashIndex for new hashTable with that key.
+      // 3. Insert the key in the new hashIndex to the new Hash Table.
+      // 4. Move the pointer to the next node
+      // 5. Continue step 1 to 4 until you reach the end of the loop
+
+      int key = oldHashTableIndexHeadPointer->key;
+      int newHashIndex = hashTable_generate_hashIndex(newHashTable, key);
+      // Create a node to store the key
+      struct Node *newNode = malloc(sizeof(struct Node));
+      struct Node *newHashTableIndexHeadPointer = newHashTable->hashTableBaseAddress[newHashIndex];
+      printf("Old [ Key: %d, Index: %d]\n", key, index);
+      printf("New [ Key: %d, Index: %d]\n", key, newHashIndex);
+
+      // No collison
+      if (newHashTableIndexHeadPointer == NULL)
+      {
+        newNode->key = key;
+        newNode->next = NULL;
+        newHashTable->hashTableBaseAddress[newHashIndex] = newNode;
+      }
+
+      // Collison occurs
+      newNode->key = key;
+      newNode->next = newHashTableIndexHeadPointer;
+      newHashTable->hashTableBaseAddress[newHashIndex] = newNode;
+
+      // Go to next bucket
+      oldHashTableIndexHeadPointer = oldHashTableIndexHeadPointer->next;
+    }
+  }
+  return newHashTable;
+}
+
+void hashTable_printMap(struct HashTable *hashTable)
 {
   // Access the base address of HashTable
   // Loop through the whole hashTable
@@ -197,7 +285,17 @@ void hashMap_printMap(struct HashTable *hashTable)
   // Print other hashIndex value in another line
 }
 
-void hashMap_free(struct HashTable *hashTable)
+void hashTable_calculate_loadFactor(struct HashTable *hashTable)
+{
+  // Check if the capacity is zero to avoid division by zero
+  if (hashTable->capacity <= 0)
+  {
+    hashTable->loadFactor = 0.0f;
+  }
+  hashTable->loadFactor = (float)hashTable->size / (float)hashTable->capacity;
+}
+
+void hashTable_free(struct HashTable *hashTable)
 {
   // Free Nodes associated with the HashTable
   for (int hashTableIndex = 0; hashTableIndex < (hashTable->capacity); hashTableIndex++)
@@ -219,4 +317,36 @@ void hashMap_free(struct HashTable *hashTable)
   free(hashTable->hashTableBaseAddress);
   // Free the Hash Table structure
   free(hashTable);
+}
+
+// Convert the user entered initial table capacity to nearest power of 2
+unsigned int convert_input_to_powerOfTwo(int number)
+{
+  // Check if the number is less than power of 2^31 - 1. Because while converting unsigned value over this number can cause integer overflow
+  // or undefined behavior.
+  // IF the number exceeds this. The shift operation will result in negative number.
+  if (number > 2147483647)
+  {
+    number = 2147483647; // If the user tries to add more keys than the load factor logic which will double the size of hashmap will handle rest.
+  }
+  // Check if the value is negative or positive
+  // The size of the table cannot be negative. So, we will be using unsigned int
+  // So, taking the absolute value
+  // Also we are using unsigned integer. So, we don't have to worry about negative values.
+  unsigned int absValue = (number < 0) ? -number : number;
+  unsigned int shift = 0;
+
+  // The power of two has the MSB 1 and other 0.
+  // We will convert all the bits 0 except MSB to get its nearest power to 2.
+  // To do this we need to calculate how many bits the MSB is far from the LSB. So, we will use shift to know this
+  // absValue >> 1 shifts the bit to right by 1
+  // If the number = 44. In first iteration , binary of 44 = 101100, it shift to 010110(22), then to 001011(11). and loop stops until it it 000001 or 1.
+  while (absValue > 1)
+  {
+    absValue = absValue >> 1;
+    shift++;
+  }
+  // Shifting the number 1 by the toatal numbers of bits or shifts to get it's nearest power of 2.
+  unsigned int result = 1 << shift;
+  return result;
 }
