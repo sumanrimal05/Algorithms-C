@@ -52,8 +52,8 @@ struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTabl
 // Helper Function
 void hashTable_calculate_loadFactor(struct HashTable *hashTable);
 int hashTable_generate_hashIndex(struct HashTable *hashTable, int key);
-void hashTable_expand(struct HashTable *hashTable);
-void hashTable_shrink(struct HashTable *hashTable);
+void hashTable_expand(struct HashTable **hashTable);
+void hashTable_shrink(struct HashTable **hashTable);
 void hashTable_insert_into_HeadNode(struct Node *hashTableIndexHeadPointer); // Insert key at the Head of chain in the linked list
 void hashTable_free(struct HashTable *hashTable);
 unsigned int convert_input_to_powerOfTwo(int number);
@@ -155,24 +155,12 @@ void hashTable_insert(struct HashTable **hashTable, int key)
   // IF above double the size of hashTable and recalculate the table capacity
   if ((*hashTable)->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
   {
-    int newCapacity = (*hashTable)->capacity * 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
-                                                  // Create a new hashTable with double the size.
-    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
-    struct HashTable *oldHashTable = *hashTable;
-    *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
-    // printf("New: %p\n", (void *)newHashTable);
-    // Once the traversal is complete and you copied everything free the old hashTable
-    free(oldHashTable);
+    hashTable_expand(hashTable);
   }
 
   if (((*hashTable)->loadFactor <= LOAD_FACTOR_THRESHOLD_SHRINK) && ((*hashTable)->loadFactor >= INITIAL_CAPACITY))
   {
-    int newCapacity = (*hashTable)->capacity / 2; // Reducing the size of hashTable by half
-    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
-    struct HashTable *oldHashTable = *hashTable;
-    *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
-    // Once the traversal is complete and you copied everything free the old hashTable
-    free(oldHashTable);
+    hashTable_shrink(hashTable);
   }
   // Check if the hashIndex in HashTable is empty
   // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
@@ -278,6 +266,27 @@ void hashTable_print(struct HashTable *hashTable)
     }
   }
   printf("\n");
+}
+void hashTable_expand(struct HashTable **hashTable)
+{
+  int newCapacity = (*hashTable)->capacity * 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
+                                                // Create a new hashTable with double the size.
+  struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
+  struct HashTable *oldHashTable = *hashTable;
+  *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
+  // printf("New: %p\n", (void *)newHashTable);
+  // Once the traversal is complete and you copied everything free the old hashTable
+  free(oldHashTable);
+}
+
+void hashTable_shrink(struct HashTable **hashTable)
+{
+  int newCapacity = (*hashTable)->capacity / 2; // Reducing the size of hashTable by half
+  struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
+  struct HashTable *oldHashTable = *hashTable;
+  *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
+  // Once the traversal is complete and you copied everything free the old hashTable
+  free(oldHashTable);
 }
 
 void hashTable_calculate_loadFactor(struct HashTable *hashTable)
