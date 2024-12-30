@@ -17,7 +17,7 @@
 // Using power of 2 is important as be can use bit wise operator on calculating hash function.
 // Also if we have used prime numbers, while doubling the hashTable size we need to find the nearest prime number
 // to the double which is computationally a little heavy.
-#define INITIAL_CAPACITY 16 // Default hash table capacity or table size, power of 2
+#define INITIAL_CAPACITY 4 // Default hash table capacity or table size, power of 2
 
 // Node for storing the key that results in collison as a chain using linked list
 struct Node
@@ -43,10 +43,10 @@ struct HashTable
 // Function Prototype
 struct HashTable *hashTable_create_withoutCapacity();
 struct HashTable *hashTable_create_withCapacity(int initialCapacity);
-void hashTable_insert(struct HashTable *hashTable, int item);
+void hashTable_insert(struct HashTable **hashTable, int item);
 void hashTable_delete(struct HashTable *hashTable, int item);
 int hashTable_search(struct HashTable *hashTable, int item);
-void hashTable_printMap(struct HashTable *hashTable);
+void hashTable_print(struct HashTable *hashTable);
 struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable);
 
 // Helper Function
@@ -61,22 +61,20 @@ unsigned int convert_input_to_powerOfTwo(int number);
 int main()
 {
   struct HashTable *hashTable = hashTable_create_withoutCapacity();
-  struct HashTable *newHashTable = hashTable_create_withCapacity(32);
   // int result = hashTable_generate_hashIndex(3);
   // printf("Hash Index: %d\n", result);
 
   // result = hashTable_generate_hashIndex(13);
   // printf("Hash Index: %d\n", result);
 
-  // printf("%d\n", (newest->hashTableBaseAddress[12])->key);
-  hashTable_insert(hashTable, 20);
-  hashTable_insert(hashTable, 21);
-  hashTable_insert(hashTable, 1678555666);
-  // hashTable_printMap(hashTable);
-  hashTable_insert(hashTable, 3);
-  hashTable_insert(hashTable, 13);
-  hashTable_insert(hashTable, 14);
-  hashTable_printMap(hashTable);
+  hashTable_insert(&hashTable, 20);
+  hashTable_insert(&hashTable, 21);
+  hashTable_insert(&hashTable, 1678555666);
+  hashTable_print(hashTable);
+  hashTable_insert(&hashTable, 3);
+  hashTable_insert(&hashTable, 13);
+  hashTable_insert(&hashTable, 14);
+  hashTable_print(hashTable);
   hashTable_free(hashTable);
   return 0;
 }
@@ -144,63 +142,61 @@ int hashTable_generate_hashIndex(struct HashTable *hashTable, int key)
   return index;
 }
 
-void hashTable_insert(struct HashTable *hashTable, int key)
+void hashTable_insert(struct HashTable **hashTable, int key)
 {
-  // TODO: while resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
+  // While resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
   // If you don't make a new hashtable and just resize the previous hashTable
   //  The hash function will give inconsistent hashIndex as the table size is changed
-  // Generate hashIndex for the key
-  int hashIndex = hashTable_generate_hashIndex(hashTable, key);
 
   // Check if the hashTable loadFactor is above or below the threshold
-  hashTable_calculate_loadFactor(hashTable);
-  struct HashTable *newHashTable = hashTable;
+  hashTable_calculate_loadFactor(*hashTable);
+  // struct HashTable *newHashTable = hashTable;
+  // printf("Old: %p\n", (void *)newHashTable);
   // IF above double the size of hashTable and recalculate the table capacity
-  if (hashTable->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
+  if ((*hashTable)->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
   {
-    printf("I am in 1.\n");
-    hashTable->capacity *= 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
-                              // Create a new hashTable with double the size.
-    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(hashTable->capacity);
-    newHashTable = hashTable_copy(hashTable, newHashTableWithSize);
+    int newCapacity = (*hashTable)->capacity * 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
+                                                  // Create a new hashTable with double the size.
+    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
+    struct HashTable *oldHashTable = *hashTable;
+    *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
+    // printf("New: %p\n", (void *)newHashTable);
     // Once the traversal is complete and you copied everything free the old hashTable
-    free(hashTable);
+    free(oldHashTable);
   }
 
-  if ((hashTable->loadFactor <= LOAD_FACTOR_THRESHOLD_SHRINK) && (hashTable->loadFactor >= INITIAL_CAPACITY))
+  if (((*hashTable)->loadFactor <= LOAD_FACTOR_THRESHOLD_SHRINK) && ((*hashTable)->loadFactor >= INITIAL_CAPACITY))
   {
-    printf("I am in 2.\n");
-    hashTable->capacity /= 2; // Reducing the size of hashTable by half
-    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(hashTable->capacity);
-    newHashTable = hashTable_copy(hashTable, newHashTableWithSize);
+    int newCapacity = (*hashTable)->capacity / 2; // Reducing the size of hashTable by half
+    struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
+    struct HashTable *oldHashTable = *hashTable;
+    *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
     // Once the traversal is complete and you copied everything free the old hashTable
-    free(hashTable);
+    free(oldHashTable);
   }
   // Check if the hashIndex in HashTable is empty
   // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
 
-  struct Node *hashTableIndexHeadPointer = newHashTable->hashTableBaseAddress[hashIndex];
-  // printf("H: %p", hashTable->hashTableBaseAddress[hashIndex - 1]);
+  // Generate hashIndex for the key
+  int hashIndex = hashTable_generate_hashIndex(*hashTable, key);
+  struct Node *hashTableIndexHeadPointer = (*hashTable)->hashTableBaseAddress[hashIndex];
   struct Node *newNode = malloc(sizeof(struct Node));
+  // Collison not detected case
   if ((hashTableIndexHeadPointer) == NULL)
   {
-    printf("Key: %d, HashIndex: %d\n", key, hashIndex);
-    printf("Collision Not Detected.\n");
     newNode->key = key;
     newNode->next = NULL;
-    newHashTable->hashTableBaseAddress[hashIndex] = newNode;
+    (*hashTable)->hashTableBaseAddress[hashIndex] = newNode;
   }
   // If the hashIndex not empty. traverse to the end of linked list and put the node there.
-  else
+  else // Collison detected case
   {
-    printf("Key: %d, HashIndex: %d\n", key, hashIndex);
-    printf("Collison Detected with key: %d\n", hashTableIndexHeadPointer->key);
     newNode->key = key;
     newNode->next = hashTableIndexHeadPointer;
 
-    newHashTable->hashTableBaseAddress[hashIndex] = newNode;
+    (*hashTable)->hashTableBaseAddress[hashIndex] = newNode;
   }
-  hashTable->size++;
+  (*hashTable)->size++;
 }
 
 struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable)
@@ -239,8 +235,6 @@ struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTabl
       // Create a node to store the key
       struct Node *newNode = malloc(sizeof(struct Node));
       struct Node *newHashTableIndexHeadPointer = newHashTable->hashTableBaseAddress[newHashIndex];
-      printf("Old [ Key: %d, Index: %d]\n", key, index);
-      printf("New [ Key: %d, Index: %d]\n", key, newHashIndex);
 
       // No collison
       if (newHashTableIndexHeadPointer == NULL)
@@ -262,10 +256,12 @@ struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTabl
   return newHashTable;
 }
 
-void hashTable_printMap(struct HashTable *hashTable)
+void hashTable_print(struct HashTable *hashTable)
 {
-  // Access the base address of HashTable
+  // Access the base address of HashTable  // Print the baseAddress[hashIndex] and chain in one line
+  // Print other hashIndex value in another line
   // Loop through the whole hashTable
+
   for (int index = 0; index < (hashTable->capacity); index++)
   {
     printf("%d: ", index);
@@ -281,8 +277,7 @@ void hashTable_printMap(struct HashTable *hashTable)
       printf("NULL\n");
     }
   }
-  // Print the baseAddress[hashIndex] and chain in one line
-  // Print other hashIndex value in another line
+  printf("\n");
 }
 
 void hashTable_calculate_loadFactor(struct HashTable *hashTable)
