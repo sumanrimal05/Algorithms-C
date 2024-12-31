@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define LOAD_FACTOR_THRESHOLD_EXPAND 0.75 // Defines the threshold for expanding the hash table
 #define LOAD_FACTOR_THRESHOLD_SHRINK 0.2  // Defines the threshold for shrinking the hash table
@@ -41,8 +42,8 @@ struct HashTable
 };
 
 // Function Prototype
-struct HashTable *hashTable_create_withoutCapacity();
-struct HashTable *hashTable_create_withCapacity(int initialCapacity);
+struct HashTable *hashTable_default();
+struct HashTable *hashTable_create(int initialCapacity);
 void hashTable_insert(struct HashTable **hashTable, int item);
 void hashTable_delete(struct HashTable *hashTable, int item);
 int hashTable_search(struct HashTable *hashTable, int item);
@@ -50,21 +51,21 @@ void hashTable_print(struct HashTable *hashTable);
 struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable);
 
 // Helper Function
-void hashTable_calculate_loadFactor(struct HashTable *hashTable);
-int hashTable_generate_hashIndex(struct HashTable *hashTable, int key);
+void calculate_loadFactor(struct HashTable *hashTable);
+int generate_hashIndex(struct HashTable *hashTable, int key);
 void hashTable_expand(struct HashTable **hashTable);
 void hashTable_shrink(struct HashTable **hashTable);
-void hashTable_insert_into_HeadNode(struct Node *hashTableIndexHeadPointer); // Insert key at the Head of chain in the linked list
 void hashTable_free(struct HashTable *hashTable);
 unsigned int convert_input_to_powerOfTwo(int number);
+bool check_duplicate_key(struct HashTable *hashTable, int key);
 
 int main()
 {
-  struct HashTable *hashTable = hashTable_create_withoutCapacity();
-  // int result = hashTable_generate_hashIndex(3);
+  struct HashTable *hashTable = hashTable_default();
+  // int result = generate_hashIndex(3);
   // printf("Hash Index: %d\n", result);
 
-  // result = hashTable_generate_hashIndex(13);
+  // result = generate_hashIndex(13);
   // printf("Hash Index: %d\n", result);
 
   hashTable_insert(&hashTable, 20);
@@ -74,12 +75,13 @@ int main()
   hashTable_insert(&hashTable, 3);
   hashTable_insert(&hashTable, 13);
   hashTable_insert(&hashTable, 14);
+  hashTable_insert(&hashTable, 3);
   hashTable_print(hashTable);
   hashTable_free(hashTable);
   return 0;
 }
 
-struct HashTable *hashTable_create_withoutCapacity()
+struct HashTable *hashTable_default()
 {
   struct HashTable *hashTable = malloc(sizeof(struct HashTable));
   // Initializing the strucuture variables
@@ -97,7 +99,7 @@ struct HashTable *hashTable_create_withoutCapacity()
   return hashTable;
 }
 
-struct HashTable *hashTable_create_withCapacity(int initialCapacity)
+struct HashTable *hashTable_create(int initialCapacity)
 {
   struct HashTable *hashTable = malloc(sizeof(struct HashTable));
   // Initializing the strucuture variables
@@ -118,7 +120,7 @@ struct HashTable *hashTable_create_withCapacity(int initialCapacity)
   return hashTable;
 }
 
-int hashTable_generate_hashIndex(struct HashTable *hashTable, int key)
+int generate_hashIndex(struct HashTable *hashTable, int key)
 {
   // We will be using bit wise operator on hash function because
   // 1.Bit wise operator are fast comparison to modulo operator.
@@ -144,14 +146,15 @@ int hashTable_generate_hashIndex(struct HashTable *hashTable, int key)
 
 void hashTable_insert(struct HashTable **hashTable, int key)
 {
-  // While resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
-  // If you don't make a new hashtable and just resize the previous hashTable
-  //  The hash function will give inconsistent hashIndex as the table size is changed
-
+  // Check for duplicate Key
+  bool checkDuplicate = check_duplicate_key(*hashTable, key);
+  if (checkDuplicate)
+  {
+    printf("Insert Error: Duplicate Key exists.\n");
+    return;
+  }
   // Check if the hashTable loadFactor is above or below the threshold
-  hashTable_calculate_loadFactor(*hashTable);
-  // struct HashTable *newHashTable = hashTable;
-  // printf("Old: %p\n", (void *)newHashTable);
+  calculate_loadFactor(*hashTable);
   // IF above double the size of hashTable and recalculate the table capacity
   if ((*hashTable)->loadFactor >= LOAD_FACTOR_THRESHOLD_EXPAND)
   {
@@ -166,7 +169,7 @@ void hashTable_insert(struct HashTable **hashTable, int key)
   // If empty create a node and keep the key, key pair in the node and keep the memory address of the node in the index.
 
   // Generate hashIndex for the key
-  int hashIndex = hashTable_generate_hashIndex(*hashTable, key);
+  int hashIndex = generate_hashIndex(*hashTable, key);
   struct Node *hashTableIndexHeadPointer = (*hashTable)->hashTableBaseAddress[hashIndex];
   struct Node *newNode = malloc(sizeof(struct Node));
   // Collison not detected case
@@ -187,6 +190,7 @@ void hashTable_insert(struct HashTable **hashTable, int key)
   (*hashTable)->size++;
 }
 
+
 struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable)
 {
   // Check if newHashTable size is small then oldHashTable Size
@@ -200,7 +204,9 @@ struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTabl
   // Traverse the old hashTable nodes and while traversing calculate new hashIndex for the key and put it in the new hashTable
   for (int index = 0; index < (oldHashTable->capacity); index++)
   {
-
+    // While resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
+    // If you don't make a new hashtable and just resize the previous hashTable
+    //  The hash function will give inconsistent hashIndex as the table size is changed
     struct Node *oldHashTableIndexHeadPointer = oldHashTable->hashTableBaseAddress[index];
 
     // If the old hash table index pointer is NULL.
@@ -219,7 +225,7 @@ struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTabl
       // 5. Continue step 1 to 4 until you reach the end of the loop
 
       int key = oldHashTableIndexHeadPointer->key;
-      int newHashIndex = hashTable_generate_hashIndex(newHashTable, key);
+      int newHashIndex = generate_hashIndex(newHashTable, key);
       // Create a node to store the key
       struct Node *newNode = malloc(sizeof(struct Node));
       struct Node *newHashTableIndexHeadPointer = newHashTable->hashTableBaseAddress[newHashIndex];
@@ -267,14 +273,17 @@ void hashTable_print(struct HashTable *hashTable)
   }
   printf("\n");
 }
+
 void hashTable_expand(struct HashTable **hashTable)
 {
+  // While resizing the hashTable you needd to copy all the value of previous hashTable into the new hashTable
+  // If you don't make a new hashtable and just resize the previous hashTable
+  //  The hash function will give inconsistent hashIndex as the table size is changed
   int newCapacity = (*hashTable)->capacity * 2; // We are doubling the table capacity because 2 is 2^0. So, it will make the new table size in power of 2.
                                                 // Create a new hashTable with double the size.
-  struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
+  struct HashTable *newHashTableWithSize = hashTable_create(newCapacity);
   struct HashTable *oldHashTable = *hashTable;
   *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
-  // printf("New: %p\n", (void *)newHashTable);
   // Once the traversal is complete and you copied everything free the old hashTable
   free(oldHashTable);
 }
@@ -282,14 +291,14 @@ void hashTable_expand(struct HashTable **hashTable)
 void hashTable_shrink(struct HashTable **hashTable)
 {
   int newCapacity = (*hashTable)->capacity / 2; // Reducing the size of hashTable by half
-  struct HashTable *newHashTableWithSize = hashTable_create_withCapacity(newCapacity);
+  struct HashTable *newHashTableWithSize = hashTable_create(newCapacity);
   struct HashTable *oldHashTable = *hashTable;
   *hashTable = hashTable_copy(oldHashTable, newHashTableWithSize);
   // Once the traversal is complete and you copied everything free the old hashTable
   free(oldHashTable);
 }
 
-void hashTable_calculate_loadFactor(struct HashTable *hashTable)
+void calculate_loadFactor(struct HashTable *hashTable)
 {
   // Check if the capacity is zero to avoid division by zero
   if (hashTable->capacity <= 0)
@@ -323,6 +332,25 @@ void hashTable_free(struct HashTable *hashTable)
   free(hashTable);
 }
 
+bool check_duplicate_key(struct HashTable *hashTable, int key)
+{
+  int hashIndex = generate_hashIndex(hashTable, key);
+  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
+
+  while (hashTableIndexHeadPointer != NULL)
+  {
+    if (hashTableIndexHeadPointer->key == key)
+    {
+      printf("Duplicate Key found at index %d.\n", hashIndex);
+      return true;
+    }
+    hashTableIndexHeadPointer = hashTableIndexHeadPointer->next;
+  }
+
+  return false; // No key found
+}
+
+
 // Convert the user entered initial table capacity to nearest power of 2
 unsigned int convert_input_to_powerOfTwo(int number)
 {
@@ -331,7 +359,8 @@ unsigned int convert_input_to_powerOfTwo(int number)
   // IF the number exceeds this. The shift operation will result in negative number.
   if (number > 2147483647)
   {
-    number = 2147483647; // If the user tries to add more keys than the load factor logic which will double the size of hashmap will handle rest.
+    unsigned int result = 2147483647; // If the user tries to add more keys than the load factor logic which will double the size of hashmap will handle rest.
+    return result;
   }
   // Check if the value is negative or positive
   // The size of the table cannot be negative. So, we will be using unsigned int
