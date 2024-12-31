@@ -60,20 +60,16 @@ unsigned int convert_input_to_powerOfTwo(int number);
 int main()
 {
   struct HashTable *hashTable = hashTable_default();
-  // int result = generate_hashIndex(3);
-  // printf("Hash Index: %d\n", result);
-
-  // result = generate_hashIndex(13);
-  // printf("Hash Index: %d\n", result);
 
   hashTable_insert(&hashTable, 20);
   hashTable_insert(&hashTable, 21);
   hashTable_insert(&hashTable, 1678555666);
-  hashTable_print(hashTable);
   hashTable_insert(&hashTable, 3);
   hashTable_insert(&hashTable, 13);
   hashTable_insert(&hashTable, 14);
   hashTable_insert(&hashTable, 3);
+  hashTable_print(hashTable);
+  hashTable_delete(hashTable, 1678555666);
   hashTable_print(hashTable);
   hashTable_free(hashTable);
   return 0;
@@ -106,7 +102,6 @@ struct HashTable *hashTable_create(int initialCapacity)
   // Converting the hashTable into power of 2.
   int tableSize = convert_input_to_powerOfTwo(initialCapacity);
   hashTable->capacity = tableSize;
-  // Create a hash table with initial table size
   // We are using calloc because in case of pointers calloc initializes the memory address with NULL value
   hashTable->hashTableBaseAddress = calloc(hashTable->capacity, sizeof(struct Node *));
 
@@ -247,6 +242,55 @@ struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTabl
   return newHashTable;
 }
 
+
+int hashTable_search(struct HashTable *hashTable, int key)
+{
+  int hashIndex = generate_hashIndex(hashTable, key);
+  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
+
+  while (hashTableIndexHeadPointer != NULL)
+  {
+    if (hashTableIndexHeadPointer->key == key)
+    {
+      printf("Key found at index %d.\n", hashIndex);
+      return hashIndex;
+    }
+    hashTableIndexHeadPointer = hashTableIndexHeadPointer->next;
+  }
+
+  return -1; // No key found
+}
+
+
+void hashTable_delete(struct HashTable *hashTable, int key)
+{
+  int keyIndex = hashTable_search(hashTable, key);
+  if (keyIndex == -1)
+  {
+    printf("Delete Error: Key not found\n");
+  }
+
+  struct Node **hashTableIndexHeadPointerAddress = &(hashTable->hashTableBaseAddress[keyIndex]);
+  struct Node *previousNode, *currentNode;
+  for (previousNode = NULL, currentNode = *hashTableIndexHeadPointerAddress; currentNode != NULL && currentNode->key != key; previousNode = currentNode, currentNode = currentNode->next)
+  {
+    printf("Val: %d\n", currentNode->key);
+  }
+
+  // Key in the head node
+  if (previousNode == NULL)
+  {
+    *hashTableIndexHeadPointerAddress = (*hashTableIndexHeadPointerAddress)->next;
+  }
+  else
+  {
+    previousNode->next = currentNode->next;
+  }
+
+  free(currentNode);
+}
+
+
 void hashTable_print(struct HashTable *hashTable)
 {
   // Access the base address of HashTable  // Print the baseAddress[hashIndex] and chain in one line
@@ -329,24 +373,6 @@ void hashTable_free(struct HashTable *hashTable)
   free(hashTable);
 }
 
-
-int hashTable_search(struct HashTable *hashTable, int key)
-{
-  int hashIndex = generate_hashIndex(hashTable, key);
-  struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
-
-  while (hashTableIndexHeadPointer != NULL)
-  {
-    if (hashTableIndexHeadPointer->key == key)
-    {
-      printf("Key found at index %d.\n", hashIndex);
-      return hashIndex;
-    }
-    hashTableIndexHeadPointer = hashTableIndexHeadPointer->next;
-  }
-
-  return -1; // No key found
-}
 
 // Convert the user entered initial table capacity to nearest power of 2
 unsigned int convert_input_to_powerOfTwo(int number)
