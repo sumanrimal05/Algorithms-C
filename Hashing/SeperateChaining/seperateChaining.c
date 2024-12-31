@@ -262,44 +262,32 @@ int hashTable_search(struct HashTable *hashTable, int key)
 
 void hashTable_delete(struct HashTable *hashTable, int key)
 {
-  int keyIndex = hashTable_search(hashTable, key);
-  if (keyIndex == -1)
+  int hashIndex = generate_hashIndex(hashTable, key);
+  struct Node **current = &(hashTable->hashTableBaseAddress[hashIndex]);
+
+  while (*current && (*current)->key != key)
+  {
+    current = &((*current)->next);
+  }
+
+  if (*current)
+  {
+    struct Node *temp = *current;
+    *current = (*current)->next;
+    free(temp);
+    hashTable->size--;
+
+    // Check if shrinking needed
+    calculate_loadFactor(hashTable);
+    if ((hashTable->loadFactor <= LOAD_FACTOR_THRESHOLD_SHRINK) &&
+        (hashTable->capacity > INITIAL_CAPACITY))
+    {
+      hashTable_shrink(&hashTable);
+    }
+  }
+  else
   {
     printf("Delete Error: Key not found\n");
-    return; // Exit if key is not found
-  }
-
-  // Address of the pointer to the head node of the list at this index
-  struct Node **hashTableIndexHeadPointerAddress = &(hashTable->hashTableBaseAddress[keyIndex]);
-  struct Node *previousNode = NULL, *currentNode = *hashTableIndexHeadPointerAddress;
-
-  // Traverse the linked list to find the key
-  while (currentNode != NULL && currentNode->key != key)
-  {
-    previousNode = currentNode;
-    currentNode = currentNode->next;
-  }
-
-  // Key found: handle deletion
-  if (currentNode != NULL)
-  {
-    if (previousNode == NULL)
-    {
-      // Key is in the head node
-      *hashTableIndexHeadPointerAddress = currentNode->next;
-    }
-    else
-    {
-      // Key is in a non-head node
-      previousNode->next = currentNode->next;
-    }
-
-    // Free the memory of the deleted node
-    free(currentNode);
-
-    // Update size and load factor
-    hashTable->size--;
-    calculate_loadFactor(hashTable);
   }
 }
 
