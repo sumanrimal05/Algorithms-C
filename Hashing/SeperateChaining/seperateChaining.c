@@ -242,7 +242,6 @@ struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTabl
   return newHashTable;
 }
 
-
 int hashTable_search(struct HashTable *hashTable, int key)
 {
   int hashIndex = generate_hashIndex(hashTable, key);
@@ -261,35 +260,48 @@ int hashTable_search(struct HashTable *hashTable, int key)
   return -1; // No key found
 }
 
-
 void hashTable_delete(struct HashTable *hashTable, int key)
 {
   int keyIndex = hashTable_search(hashTable, key);
   if (keyIndex == -1)
   {
     printf("Delete Error: Key not found\n");
+    return; // Exit if key is not found
   }
 
+  // Address of the pointer to the head node of the list at this index
   struct Node **hashTableIndexHeadPointerAddress = &(hashTable->hashTableBaseAddress[keyIndex]);
-  struct Node *previousNode, *currentNode;
-  for (previousNode = NULL, currentNode = *hashTableIndexHeadPointerAddress; currentNode != NULL && currentNode->key != key; previousNode = currentNode, currentNode = currentNode->next)
+  struct Node *previousNode = NULL, *currentNode = *hashTableIndexHeadPointerAddress;
+
+  // Traverse the linked list to find the key
+  while (currentNode != NULL && currentNode->key != key)
   {
-    printf("Val: %d\n", currentNode->key);
+    previousNode = currentNode;
+    currentNode = currentNode->next;
   }
 
-  // Key in the head node
-  if (previousNode == NULL)
+  // Key found: handle deletion
+  if (currentNode != NULL)
   {
-    *hashTableIndexHeadPointerAddress = (*hashTableIndexHeadPointerAddress)->next;
-  }
-  else
-  {
-    previousNode->next = currentNode->next;
-  }
+    if (previousNode == NULL)
+    {
+      // Key is in the head node
+      *hashTableIndexHeadPointerAddress = currentNode->next;
+    }
+    else
+    {
+      // Key is in a non-head node
+      previousNode->next = currentNode->next;
+    }
 
-  free(currentNode);
+    // Free the memory of the deleted node
+    free(currentNode);
+
+    // Update size and load factor
+    hashTable->size--;
+    calculate_loadFactor(hashTable);
+  }
 }
-
 
 void hashTable_print(struct HashTable *hashTable)
 {
@@ -372,7 +384,6 @@ void hashTable_free(struct HashTable *hashTable)
   // Free the Hash Table structure
   free(hashTable);
 }
-
 
 // Convert the user entered initial table capacity to nearest power of 2
 unsigned int convert_input_to_powerOfTwo(int number)
