@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 #define LOAD_FACTOR_THRESHOLD_EXPAND 0.75 // Defines the threshold for expanding the hash table
 #define LOAD_FACTOR_THRESHOLD_SHRINK 0.2  // Defines the threshold for shrinking the hash table
@@ -44,9 +43,9 @@ struct HashTable
 // Function Prototype
 struct HashTable *hashTable_default();
 struct HashTable *hashTable_create(int initialCapacity);
-void hashTable_insert(struct HashTable **hashTable, int item);
-void hashTable_delete(struct HashTable *hashTable, int item);
-int hashTable_search(struct HashTable *hashTable, int item);
+void hashTable_insert(struct HashTable **hashTable, int key);
+void hashTable_delete(struct HashTable *hashTable, int key);
+int hashTable_search(struct HashTable *hashTable, int key);
 void hashTable_print(struct HashTable *hashTable);
 struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable);
 
@@ -57,7 +56,6 @@ void hashTable_expand(struct HashTable **hashTable);
 void hashTable_shrink(struct HashTable **hashTable);
 void hashTable_free(struct HashTable *hashTable);
 unsigned int convert_input_to_powerOfTwo(int number);
-bool check_duplicate_key(struct HashTable *hashTable, int key);
 
 int main()
 {
@@ -147,8 +145,8 @@ int generate_hashIndex(struct HashTable *hashTable, int key)
 void hashTable_insert(struct HashTable **hashTable, int key)
 {
   // Check for duplicate Key
-  bool checkDuplicate = check_duplicate_key(*hashTable, key);
-  if (checkDuplicate)
+  int checkDuplicate = hashTable_search(*hashTable, key);
+  if (checkDuplicate != -1)
   {
     printf("Insert Error: Duplicate Key exists.\n");
     return;
@@ -189,7 +187,6 @@ void hashTable_insert(struct HashTable **hashTable, int key)
   }
   (*hashTable)->size++;
 }
-
 
 struct HashTable *hashTable_copy(struct HashTable *oldHashTable, struct HashTable *newHashTable)
 {
@@ -332,7 +329,8 @@ void hashTable_free(struct HashTable *hashTable)
   free(hashTable);
 }
 
-bool check_duplicate_key(struct HashTable *hashTable, int key)
+
+int hashTable_search(struct HashTable *hashTable, int key)
 {
   int hashIndex = generate_hashIndex(hashTable, key);
   struct Node *hashTableIndexHeadPointer = hashTable->hashTableBaseAddress[hashIndex];
@@ -341,15 +339,14 @@ bool check_duplicate_key(struct HashTable *hashTable, int key)
   {
     if (hashTableIndexHeadPointer->key == key)
     {
-      printf("Duplicate Key found at index %d.\n", hashIndex);
-      return true;
+      printf("Key found at index %d.\n", hashIndex);
+      return hashIndex;
     }
     hashTableIndexHeadPointer = hashTableIndexHeadPointer->next;
   }
 
-  return false; // No key found
+  return -1; // No key found
 }
-
 
 // Convert the user entered initial table capacity to nearest power of 2
 unsigned int convert_input_to_powerOfTwo(int number)
