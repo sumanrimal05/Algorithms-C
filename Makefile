@@ -5,13 +5,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Source files
-SRCS = Hashing/SeperateChaining/seperateChaining.c
+SRCS = Trees/binarySearchTree.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
 
 # Output executable
-TARGET = Hashing/SeperateChaining/seperateChaining
+TARGET = Trees/binarySearchTree
 
 # Dependencies (for automatic dependency management)
 DEP := $(SRCS:.c=.d)
