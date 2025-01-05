@@ -34,6 +34,10 @@ int main()
   bst_insert(tree, 15);
   bst_insert(tree, 10);
   bst_insert(tree, 20);
+  bst_insert(tree, 8);
+  bst_insert(tree, 12);
+  bst_insert(tree, 17);
+  bst_insert(tree, 25);
   return 0;
 }
 
@@ -60,6 +64,7 @@ void bst_insert(struct Tree *tree, int value)
   struct Node *temp = tree->root;
   while (temp)
   {
+    // Left Insertion
     if (value < temp->value)
     {
       if (!(temp->left))
@@ -69,7 +74,9 @@ void bst_insert(struct Tree *tree, int value)
       }
       temp = temp->left;
     }
-    if (value > temp->value)
+
+    // Right Insertion
+    else if (value > temp->value)
     {
       if (!(temp->right))
       {
@@ -80,6 +87,7 @@ void bst_insert(struct Tree *tree, int value)
     }
     else
     {
+      printf("%d\n", temp->value);
       // Duplicate value
       printf("Insert Error: Duplicate Value %d.\n", value);
       return;
