@@ -1,11 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-struct Tree
-{
-  int height;
-  int size;
-  struct Node *root;
-};
 
 struct Node
 {
@@ -15,25 +9,23 @@ struct Node
 };
 
 // Function Prototype
-struct Tree *bst_create();
 struct Node *bst_node_create(int value);
 void bst_insert(struct Node **root, int value);
-void bst_insert_iteratively(struct Tree *tree, int value);
-void bst_delete(struct Tree *tree, int value);
-void bst_search(struct Tree *tree, int value);
-void bst_traverse_inOrder(struct Tree *tree);   // Left, Root, Right
-void bst_traverse_preOrder(struct Tree *tree);  // Root, Left, Right
-void bst_traverse_postOrder(struct Tree *tree); // Left, Right, Root
-void bst_print(void (*callback)(struct Tree *tree));
-void bst_free(struct Tree *tree);
+void bst_insert_iteratively(struct Node *root, int value);
+void bst_delete(struct Node *root, int value);
+void bst_search(struct Node *root, int value);
+void bst_traverse_inOrder(struct Node *root);   // Left, Root, Right
+void bst_traverse_preOrder(struct Node *root);  // Root, Left, Right
+void bst_traverse_postOrder(struct Node *root); // Left, Right, Root
+void bst_print(void (*callback)(struct Node *root));
+void bst_free(struct Node *root);
 
 // Helper Function
 
 int main()
 {
   // int input[] = {15, 10, 20, 8, 12, 17, 25};
-  struct Tree *tree = bst_create();
-  struct Node *root = tree->root = NULL;
+  struct Node *root = NULL;
   bst_insert(&root, 10);
   bst_insert(&root, 15);
   bst_insert(&root, 20);
@@ -44,17 +36,6 @@ int main()
   return 0;
 }
 
-struct Tree *bst_create()
-{
-  // Calloc allocates memory and assigns int to zero and pointer to NULL.
-  struct Tree *newTree = malloc(sizeof(struct Tree));
-  if (!newTree)
-  {
-    printf("Tree Create Fail: Memory allocation error.\n");
-    exit(1);
-  }
-  return newTree;
-}
 
 struct Node *bst_node_create(int value)
 {
@@ -97,7 +78,7 @@ void bst_insert(struct Node **root, int value)
 }
 
 // Insert into BST iteratively and doesnot allow duplicate
-void bst_insert_iteratively(struct Tree *tree, int value)
+void bst_insert_iteratively(struct Node *root, int value)
 {
   struct Node *newNode = calloc(1, sizeof(struct Node));
 
@@ -108,13 +89,13 @@ void bst_insert_iteratively(struct Tree *tree, int value)
   }
   newNode->value = value;
   // Check if tree is empty
-  if (!tree->root)
+  if (!root)
   {
-    tree->root = newNode;
+    root = newNode;
     return;
   }
   // Check the value size to insert it in left or right of the parent
-  struct Node *temp = tree->root;
+  struct Node *temp = root;
   while (temp)
   {
 
@@ -146,7 +127,6 @@ void bst_insert_iteratively(struct Tree *tree, int value)
       return;
     }
   }
-  tree->size++;
 }
 
 // Traverse the tree, order: Left, Root, Right Tree
