@@ -11,6 +11,7 @@ struct Node
 // Function Prototype
 struct Node *bst_node_create(int value);
 void bst_insert(struct Node **root, int value);
+struct Node* bst_insert_recursive_singlePointer(struct Node *root, int value);
 void bst_insert_iteratively(struct Node *root, int value);
 void bst_delete(struct Node *root, int value);
 void bst_search(struct Node *root, int value);
@@ -26,8 +27,8 @@ int main()
 {
   // int input[] = {15, 10, 20, 8, 12, 17, 25};
   struct Node *root = NULL;
-  bst_insert(&root, 10);
   bst_insert(&root, 15);
+  bst_insert(&root, 10);
   bst_insert(&root, 20);
   bst_insert(&root, 8);
   bst_insert(&root, 12);
@@ -35,7 +36,6 @@ int main()
   bst_insert(&root, 25);
   return 0;
 }
-
 
 struct Node *bst_node_create(int value)
 {
@@ -57,7 +57,7 @@ struct Node *bst_node_create(int value)
 // Use recursion to insert into BST
 void bst_insert(struct Node **root, int value)
 {
-
+  printf("Inserting value....... %d\n", value);
   // if root is null
   if (*root == NULL)
   {
@@ -74,6 +74,21 @@ void bst_insert(struct Node **root, int value)
   else
   {
     bst_insert(&((*root)->right), value);
+  }
+}
+
+// Insert recursively without directly modifying the root-> left and root->right pointer
+struct Node* bst_insert_recursive_singlePointer(struct Node *root, int value){
+  if(root == NULL){
+    return bst_node_create(value);
+  }
+  else if(value <= root->value){
+    // Traverse Left
+    root->left = bst_insert_recursive_singlePointer(root->left, value);
+  }
+  else{
+    // Traverse Right
+    root->right = bst_insert_recursive_singlePointer(root->right, value);
   }
 }
 
@@ -130,6 +145,12 @@ void bst_insert_iteratively(struct Node *root, int value)
 }
 
 // Traverse the tree, order: Left, Root, Right Tree
-// void bst_traverse_inOrder(struct Tree *tree)
+// void bst_traverse_inOrder(struct Node *root)
 // {
+//   if (root->left == NULL)
+//   {
+//     return root;
+//   }
+
+//   bst_traverse_inOrder(root->left);
 // }
