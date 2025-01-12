@@ -90,6 +90,7 @@ struct Node* bst_insert_recursive_singlePointer(struct Node *root, int value){
     // Traverse Right
     root->right = bst_insert_recursive_singlePointer(root->right, value);
   }
+  return root; // Updated root
 }
 
 // Insert into BST iteratively and doesnot allow duplicate
@@ -144,13 +145,3 @@ void bst_insert_iteratively(struct Node *root, int value)
   }
 }
 
-// Traverse the tree, order: Left, Root, Right Tree
-// void bst_traverse_inOrder(struct Node *root)
-// {
-//   if (root->left == NULL)
-//   {
-//     return root;
-//   }
-
-//   bst_traverse_inOrder(root->left);
-// }
