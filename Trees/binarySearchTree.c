@@ -35,7 +35,8 @@ int main()
   bst_insert(&root, 17);
   bst_insert(&root, 25);
   // bst_traverse_inOrder(root);
-  bst_traverse_preOrder(root);
+  // bst_traverse_preOrder(root);
+  bst_traverse_postOrder(root);
   return 0;
 }
 
@@ -183,4 +184,19 @@ void bst_traverse_preOrder(struct Node *root)
   // Traverse to the left most end
   bst_traverse_preOrder(root->left);
   bst_traverse_preOrder(root->right);
+}
+
+// Left, Right, Root Traversal
+void bst_traverse_postOrder(struct Node *root)
+{
+  if (root == NULL)
+  {
+    return;
+  }
+
+  // Traverse to the left most node
+  bst_traverse_postOrder(root->left);
+  // Traverst to the right node of the current root
+  bst_traverse_postOrder(root->right);
+  printf("Val: %d\n", root->value);
 }
