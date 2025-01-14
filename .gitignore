@@ -64,6 +64,7 @@ insertionSort
 binarySearch
 slidingWindowTechnique
 seperateChaining
+binarySearchTree
 
 #Ignore folders
 Hashing/OpenAddressing/
