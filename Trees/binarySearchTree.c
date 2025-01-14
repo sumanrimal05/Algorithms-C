@@ -18,25 +18,42 @@ void bst_search(struct Node *root, int value);
 void bst_traverse_inOrder(struct Node *root);   // Left, Root, Right
 void bst_traverse_preOrder(struct Node *root);  // Root, Left, Right
 void bst_traverse_postOrder(struct Node *root); // Left, Right, Root
-void bst_print(void (*callback)(struct Node *root));
+void bst_print(struct Node *root);              // Print the data in tree pattern
 void bst_free(struct Node *root);
+int bst_height(struct Node *root); // return the height of the binary tree
 
-// Helper Function
+// Helper function
+int max(int item1, int item2)
+{
+  printf("item1: %d, item2: %d \n", item1, item2);
+  return (item1 > item2) ? item1 : item2;
+}
 
+int treeSize = 0; // No of elements in the tree
 int main()
 {
   // int input[] = {15, 10, 20, 8, 12, 17, 25};
   struct Node *root = NULL;
   bst_insert(&root, 15);
-  bst_insert(&root, 10);
+  bst_insert(&root, 14);
   bst_insert(&root, 20);
   bst_insert(&root, 8);
   bst_insert(&root, 12);
   bst_insert(&root, 17);
   bst_insert(&root, 25);
-  // bst_traverse_inOrder(root);
+  bst_insert(&root, 9);
+  bst_insert(&root, 10);
+  bst_insert(&root, 11);
+
+  printf("Inorder Traversal\n");
+  bst_traverse_inOrder(root);
+  // printf("Preorder Traversal\n");
   // bst_traverse_preOrder(root);
-  bst_traverse_postOrder(root);
+  // printf("Postorder Traversal\n");
+  // bst_traverse_postOrder(root);
+  printf("No of elements. %d\n", treeSize);
+  int treeHeight = bst_height(root);
+  printf("Tree Height %d\n", treeHeight);
   return 0;
 }
 
@@ -53,6 +70,7 @@ struct Node *bst_node_create(int value)
   newNode->left = NULL;
   newNode->right = NULL;
   newNode->value = value;
+  treeSize++;
 
   return newNode;
 }
@@ -60,7 +78,6 @@ struct Node *bst_node_create(int value)
 // Use recursion to insert into BST
 void bst_insert(struct Node **root, int value)
 {
-  printf("Inserting value....... %d\n", value);
   // if root is null
   if (*root == NULL)
   {
@@ -117,7 +134,7 @@ void bst_insert_iteratively(struct Node *root, int value)
     root = newNode;
     return;
   }
-  // Check the value size to insert it in left or right of the parent
+  // Check the value treeSize to insert it in left or right of the parent
   struct Node *temp = root;
   while (temp)
   {
@@ -199,4 +216,20 @@ void bst_traverse_postOrder(struct Node *root)
   // Traverst to the right node of the current root
   bst_traverse_postOrder(root->right);
   printf("Val: %d\n", root->value);
+}
+
+int bst_height(struct Node *root)
+{
+  if (root == NULL)
+  {
+    return -1;
+  }
+
+  // Traverse to the left most node
+  int leftHeight = bst_height(root->left);
+
+  // Traverse to the right of current node
+  int rightHeight = bst_height(root->right);
+
+  return max(leftHeight, rightHeight) + 1;
 }
